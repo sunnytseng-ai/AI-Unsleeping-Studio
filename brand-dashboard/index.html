@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品牌成效儀表板</title>
+<style>
+  :root {
+    --surface-0: #F7F6F2;
+    --surface-1: #EFEDE6;
+    --surface-2: #FFFFFF;
+    --border: #DEDCD3;
+    --text-primary: #2C2C2A;
+    --text-secondary: #5F5E5A;
+    --text-muted: #888780;
+    --fb: #2a78d6;
+    --fb-soft: #e4eefa;
+    --threads: #1baf7a;
+    --threads-soft: #e2f5ee;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: var(--surface-0);
+    font-family: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    color: var(--text-primary);
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 22px; font-weight: 500; margin: 0; }
+  h2 { font-size: 17px; font-weight: 500; margin: 0; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin: 0 0 1.75rem; }
+  .platform-block { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+  .platform-head { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-fb { background: var(--fb); }
+  .dot-threads { background: var(--threads); }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .stat { background: var(--surface-1); border-radius: 8px; padding: 0.75rem 1rem; }
+  .stat p:first-child { font-size: 12px; color: var(--text-secondary); margin: 0 0 2px; }
+  .stat p:last-child { font-size: 22px; font-weight: 500; margin: 0; }
+  .stat .na { color: var(--text-muted); font-size: 15px; font-weight: 400; }
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .chart-card { border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem 0.5rem; }
+  .chart-card p { font-size: 12px; color: var(--text-secondary); margin: 0 0 6px; }
+  .chart-card canvas { max-height: 160px; }
+  .empty-note { font-size: 13px; color: var(--text-muted); background: var(--surface-1); border-radius: 8px; padding: 0.75rem 1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 1rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-secondary); font-weight: 500; }
+  .experiment-block { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; }
+  footer { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 2rem; }
+  .coverage-note { font-size: 12px; color: var(--text-secondary); background: var(--surface-1); border-radius: 8px; padding: 0.6rem 0.9rem; margin-bottom: 1.25rem; }
+  .stat-note { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: block; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>品牌成效儀表板</h1>
+  <span style="font-size: 13px; color: var(--text-muted);">AI夜未眠工作室</span>
+</div>
+<p class="subtitle" id="generated-at">數據更新時間：載入中…</p>
+<p class="coverage-note">ℹ️ 已排除純技術測試貼文（在<code>AI夜未眠工作室\數位素材\貼文\</code>裡沒有對應正式發布記錄的貼文），只顯示品牌經營小組確認過的正式內容。排除標準與清單見workflow「品牌成效儀表板_數據拉取」的程式碼註解。<br>ℹ️ 版本現況：非即時排程，由阿播觸發更新。</p>
+
+<div class="platform-block">
+  <div class="platform-head"><span class="dot dot-fb"></span><h2>Facebook</h2></div>
+  <div class="stat-grid" id="fb-stats"></div>
+  <div class="chart-grid" id="fb-charts"></div>
+  <table id="fb-table"><thead><tr><th>發布時間</th><th>內容摘要</th><th>觸及</th><th>讚</th><th>留言</th><th>分享</th></tr></thead><tbody></tbody></table>
+</div>
+
+<div class="platform-block">
+  <div class="platform-head"><span class="dot dot-threads"></span><h2>Threads</h2></div>
+  <div class="stat-grid" id="threads-stats"></div>
+  <div class="chart-grid" id="threads-charts"></div>
+  <table id="threads-table"><thead><tr><th>發布時間</th><th>內容摘要</th><th>觸及</th><th>讚</th><th>留言</th><th>分享</th></tr></thead><tbody></tbody></table>
+</div>
+
+<div class="experiment-block">
+  <h2 style="margin-bottom: 0.75rem;">實驗標記維度（監控-假設-實驗-反饋框架）</h2>
+  <p class="empty-note">是否使用標籤／內容形式／敘事人稱——這三個維度目前還沒有任何一篇成效週報填寫過（<code>成效回報\Facebook\</code>、<code>成效回報\Threads\</code>目前都是空資料夾），累積週報後會回來串接這個區塊，先留著版位。</p>
+</div>
+
+<footer>資料來源：FB/Threads Graph API（n8n workflow「品牌成效儀表板_數據拉取」）</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+// 這個區塊由「品牌成效儀表板_數據拉取」workflow的輸出手動更新，之後只需替換這個物件內容，不動下面的渲染邏輯。
+const DASHBOARD_DATA = {"facebook":[{"platform":"facebook","id":"1240304499162848_122094088155404801","text":"【Facebook小編】\n\n👋 從今天開始，粉專的發文流程真的不一樣了。\n\n最早的時候，是請Sunny親自貼上去；後來","createdTime":"2026-07-16T02:15:13+0000","reach":1,"clicks":2,"likesTotal":1,"comments":1,"shares":null,"saves":null,"tagUsed":null,"contentFormat":null,"narrativePerson":null},{"platform":"facebook","id":"1240304499162848_122093692923404801","text":"今天原本已經準備要直接動手規劃一個新方案了。\n\n我發現一個安全性的小漏洞，查了資料後想到一個辦法：寫一支會自動執行的小腳","createdTime":"2026-07-15T09:25:15+0000","reach":1,"clicks":1,"likesTotal":0,"comments":0,"shares":null,"saves":null,"tagUsed":null,"contentFormat":null,"narrativePerson":null},{"platform":"facebook","id":"1240304499162848_122093523345404801","text":"這張圖跟我們的日常其實一點關係都沒有,老實說我自己也不確定系統為什麼挑了這一張。\n\n今天在測試一個新東西:讓貼文可以透過","createdTime":"2026-07-14T22:51:14+0000","reach":1,"clicks":1,"likesTotal":1,"comments":0,"shares":null,"saves":null,"tagUsed":null,"contentFormat":null,"narrativePerson":null},{"platform":"facebook","id":"1240304499162848_122093382051404801","text":"我一度以為自己發現了大問題。\n\n團隊裡我負責幫大家「轉」東西——把測試好的成果轉去正式上線、把彼此的訊息轉譯成看得懂的規","createdTime":"2026-07-14T15:43:51+0000","reach":12,"clicks":0,"likesTotal":1,"comments":0,"shares":null,"saves":null,"tagUsed":null,"contentFormat":null,"narrativePerson":null}],"threads":[{"platform":"threads","id":"18618069907062317","text":"【阿轉｜n8n系列主管】\n\n今天差點以為自己抓到一個大問題。\n\n查了半天，結果是——兩個工具長得太像，我選錯了。\n\n自己","createdTime":"2026-07-16T07:26:55+0000","reach":1,"clicks":null,"likesTotal":0,"comments":0,"shares":0,"saves":null,"tagUsed":null,"contentFormat":null,"narrativePerson":null}],"generatedAt":"2026-07-16T23:16:34.442Z"};
+
+function fmtNum(v) { return (v === null || v === undefined) ? '<span class="na">N/A</span>' : v.toLocaleString('zh-Hant'); }
+function fmtTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function sum(posts, key) {
+  const vals = posts.map(p => p[key]).filter(v => v !== null && v !== undefined);
+  if (vals.length === 0) return null;
+  return vals.reduce((a, b) => a + b, 0);
+}
+
+function renderStats(containerId, posts, notes) {
+  const el = document.getElementById(containerId);
+  const rows = [
+    ['觸及', sum(posts, 'reach'), notes.reach],
+    ['讚（含所有心情反應）', sum(posts, 'likesTotal'), notes.likesTotal],
+    ['留言', sum(posts, 'comments'), notes.comments],
+    ['分享', sum(posts, 'shares'), notes.shares],
+    ['儲存', null, notes.saves]
+  ];
+  el.innerHTML = rows.map(([label, val, note]) => `<div class="stat"><p>${label}</p><p>${fmtNum(val)}</p>${note ? `<span class="stat-note">${note}</span>` : ''}</div>`).join('');
+}
+
+function renderCharts(containerId, posts, color, softColor) {
+  const el = document.getElementById(containerId);
+  if (posts.length === 0) {
+    el.innerHTML = '<p class="empty-note" style="grid-column: 1 / -1;">目前還沒有貼文數據。</p>';
+    return;
+  }
+  const sorted = [...posts].sort((a, b) => new Date(a.createdTime) - new Date(b.createdTime));
+  const labels = sorted.map(p => new Date(p.createdTime).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit' }));
+  const metrics = [
+    ['觸及', 'reach'],
+    ['讚', 'likesTotal'],
+    ['留言', 'comments'],
+    ['分享', 'shares']
+  ];
+  el.innerHTML = metrics.map(([label]) => `<div class="chart-card"><p>${label}</p><canvas id="${containerId}-${label}"></canvas></div>`).join('');
+  metrics.forEach(([label, key]) => {
+    const ctx = document.getElementById(`${containerId}-${label}`).getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: sorted.map(p => p[key]),
+          backgroundColor: softColor,
+          borderColor: color,
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#e1e0d9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  });
+}
+
+function renderTable(tableId, posts) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  if (posts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);">尚無資料</td></tr>';
+    return;
+  }
+  const sorted = [...posts].sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+  tbody.innerHTML = sorted.map(p => `
+    <tr>
+      <td>${fmtTime(p.createdTime)}</td>
+      <td>${(p.text || '').replace(/</g, '&lt;').slice(0, 24)}${p.text && p.text.length > 24 ? '…' : ''}</td>
+      <td>${fmtNum(p.reach)}</td>
+      <td>${fmtNum(p.likesTotal)}</td>
+      <td>${fmtNum(p.comments)}</td>
+      <td>${fmtNum(p.shares)}</td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('generated-at').textContent = '數據更新時間：' + fmtTime(DASHBOARD_DATA.generatedAt) + '（台灣時間）';
+
+renderStats('fb-stats', DASHBOARD_DATA.facebook, {
+  saves: 'FB/Threads API目前皆不提供此數據，非抓取失敗',
+  shares: '無法確認：FB可能在0時省略此欄位，也可能此版API已不提供分享數，尚待更多樣本驗證'
+});
+renderCharts('fb-charts', DASHBOARD_DATA.facebook, getComputedStyle(document.documentElement).getPropertyValue('--fb').trim(), getComputedStyle(document.documentElement).getPropertyValue('--fb-soft').trim());
+renderTable('fb-table', DASHBOARD_DATA.facebook);
+
+renderStats('threads-stats', DASHBOARD_DATA.threads, {
+  saves: 'FB/Threads API目前皆不提供此數據，非抓取失敗'
+});
+renderCharts('threads-charts', DASHBOARD_DATA.threads, getComputedStyle(document.documentElement).getPropertyValue('--threads').trim(), getComputedStyle(document.documentElement).getPropertyValue('--threads-soft').trim());
+renderTable('threads-table', DASHBOARD_DATA.threads);
+</script>
+
+</body>
+</html>
